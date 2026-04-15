@@ -143,6 +143,9 @@
         const urlInput = document.getElementById('url-input');
         const loader = document.getElementById('loading-overlay');
 
+        video.setAttribute("crossorigin", "anonymous");
+        video.setAttribute("referrerpolicy", "no-referrer");
+
         let hlsInstance = null;
         let dashInstance = null;
 
@@ -163,7 +166,12 @@
 
             if (extension === 'm3u8') {
                 if (Hls.isSupported()) {
-                    hlsInstance = new Hls();
+                    hlsInstance = new Hls({
+                      xhrSetup: function (xhr) {
+                        xhr.withCredentials = false;
+                        xhr.setRequestHeader('Referer', '');
+                      }
+                    });
                     hlsInstance.loadSource(url);
                     hlsInstance.attachMedia(video);
                     hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -180,6 +188,8 @@
                 loader.classList.add('hidden');
             } else {
                 // Standard MP4/M4V
+                video.setAttribute("referrerpolicy", "no-referrer");
+                video.crossOrigin = "anonymous";
                 video.src = url;
                 video.load();
                 video.play().catch(() => { /* Auto-play blocked */ });
